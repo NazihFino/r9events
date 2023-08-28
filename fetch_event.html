@@ -195,8 +195,8 @@
 
                     eventDetails.innerHTML = `
                         <strong>Name:</strong> ${eventOnThisDay.attributes.Event_Name} <br> <br>
-                        <strong>Start Date:</strong> ${eventOnThisDay.attributes.Start_Date} <br>  
-                        <strong>End Date:</strong> ${eventOnThisDay.attributes.End_Date} <br>
+                        <strong>Start Date:</strong> ${new Date(eventOnThisDay.attributes.Start_Date).toLocaleDateString()} <br>
+                        <strong>End Date:</strong> ${new Date(eventOnThisDay.attributes.End_Date).toLocaleDateString()} <br>
                         <strong>Type:</strong> ${eventOnThisDay.attributes.Event_Type} <br>
                         <strong>Location:</strong> ${eventOnThisDay.attributes.Event_Location__State_Territory} <br>
                         <strong>Organization:</strong> ${eventOnThisDay.attributes.FEMA_R9_Division} <br>
