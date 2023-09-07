@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Calendar</title>
+    <style>
+        /* Calendar Styles */
+        #calendarHeader {
+            max-width: 600px;
+            margin: 2em auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1em;
+            background: #e7e7e7;
+        }
+
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1em;
+            max-width: 600px;
+            margin: auto;
+            padding: 1em;
+            background: #f7f7f7;
+            cursor: pointer;
+        }
+
+        #calendar > div {
+            padding: 1em;
+            text-align: center;
+        }
+
+        .highlighted {
+            background-color: lightblue;
+        }
+
+        .current-day {
+            outline: 2px solid blue;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: auto;
+            padding: 0;
+            border: 1px solid #888;
+            width: 80%;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        }
+
+        .modal-content p {
+            padding: 15px;
+            text-align: left;
+        }
+
+        .modal-header {
+            padding: 2px 16px;
+            background-color: #3fa5ff;
+            color: white;
+        }
+
+        .modal-footer {
+            padding: 2px 16px;
+            background-color: #3fa5ff;
+            color: white;
+        }
+
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        body, button, span {
+            font-family: 'Avenir Next', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Calendar Header -->
+    <div id="calendarHeader">
+        <button id="prevMonth">&#171;</button>
+        <span>Upcoming Events in </span>
+        <span id="monthYearDisplay"></span>
+        <button id="nextMonth">&#187;</button>
+    </div>
+
+    <!-- Calendar Container -->
+    <div id="calendar"></div>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">×</span>
+                <h2>Event Details</h2>
+            </div>
+            <div class="modal-body">
+                <p id="eventDetails"></p>
+            </div>
+            <div class="modal-footer">
+                <h3>End of Details</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+
+        function displayMonthYear() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthYearDisplay = document.getElementById('monthYearDisplay');
+            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        }
+
+        document.getElementById('prevMonth').addEventListener('click', function () {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            displayMonthYear();
+            updateCalendar(currentYear, currentMonth);
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', function () {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            displayMonthYear();
+            updateCalendar(currentYear, currentMonth);
+        });
+
+        async function fetchEventsForMonth(year, month) {
+            try {
+                const response = await fetch("https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/FAB_nf/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json");
+                const data = await response.json();
+                const events = data.features.map(feature => ({
+                    title: feature.attributes.NAME,
+                    startDate: new Date(feature.attributes.START_DATE).getDate(),
+                    endDate: new Date(feature.attributes.END_DATE).getDate()
+                }));
+                return events;
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                return [];
+            }
+        }
+
+        function displayEventDetails(events, day) {
+            const modal = document.getElementById('eventModal');
+            const eventDetails = document.getElementById('eventDetails');
+            let detailsHtml = '';
+
+            events.forEach(event => {
+                if (day >= event.startDate && day <= event.endDate) {
+                    detailsHtml += `<strong>${event.title}</strong><br>`;
+                }
+            });
+
+            if (detailsHtml !== '') {
+                eventDetails.innerHTML = detailsHtml;
+                modal.style.display = "block";
+            }
+        }
+
+        function updateCalendar(year, month) {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            // Display initials of the days
+            const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            dayNames.forEach(day => {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                calendar.appendChild(dayDiv);
+            });
+
+            const startDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            let dayCount = 1;
+
+            for (let i = 0; i < 42; i++) {
+                const dayDiv = document.createElement('div');
+
+                if (i >= startDay && dayCount <= lastDate) {
+                    dayDiv.textContent = dayCount;
+                    if (year === new Date().getFullYear() && month === new Date().getMonth() && dayCount === new Date().getDate()) {
+                        dayDiv.classList.add('current-day');
+                    }
+
+                    fetchEventsForMonth(year, month).then(events => {
+                        events.forEach(event => {
+                            if (dayCount >= event.startDate && dayCount <= event.endDate) {
+                                dayDiv.classList.add('highlighted');
+                            }
+                        });
+                    });
+
+                    dayDiv.addEventListener('click', function () {
+                        fetchEventsForMonth(year, month).then(events => {
+                            displayEventDetails(events, dayCount);
+                        });
+                    });
+
+                    dayCount++;
+                }
+
+                calendar.appendChild(dayDiv);
+            }
+        }
+
+        const expandButton = document.createElement('button');
+        expandButton.textContent = "Expand Calendar";
+        document.body.insertBefore(expandButton, document.getElementById('calendar'));
+
+        expandButton.onclick = function () {
+            const calendar = document.getElementById('calendar');
+            if (calendar.style.maxWidth === "600px" || calendar.style.maxWidth === "") {
+                calendar.style.maxWidth = "100%";
+            } else {
+                calendar.style.maxWidth = "600px";
+            }
+        }
+
+        window.addEventListener('click', function (e) {
+            const modal = document.getElementById('eventModal
+');
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        const closeModal = document.querySelector(".close");
+        closeModal.onclick = function () {
+            const modal = document.getElementById('eventModal');
+            modal.style.display = "none";
+        }
+
+        // Initialize calendar and display
+        displayMonthYear();
+        updateCalendar(currentYear, currentMonth);
+    </script>
+</body>
+
+</html>
