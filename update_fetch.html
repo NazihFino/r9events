@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Calendar</title>
     <style>
+      
+      
         #calendarHeader {
             max-width: 600px;
             margin: 2em auto;
@@ -96,7 +98,16 @@
       #calendar {
             grid-template-rows: auto repeat(5, 1fr); /* Assuming a maximum of 5 rows for the days of the month */
 }
-     
+ .expanded-view #calendar {
+    max-width: 100%; /* Allow the calendar to take up the full width */
+    gap: 2em; /* Increase the gap between grid items for expanded view */
+}
+
+.expanded-view #calendar > div {
+    font-size: 2em; /* Increase the font size of the day numbers */
+    padding: 2em; /* Increase padding for each day cell */
+}
+    
     </style>
 </head>
 
@@ -260,6 +271,7 @@ document.getElementById('toggleView').addEventListener('click', function() {
         this.innerText = 'Compact View';
     }
 });
+
 
 displayMonthYear();
 updateCalendar(currentYear, currentMonth);
