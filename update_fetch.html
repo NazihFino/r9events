@@ -63,12 +63,12 @@
         }
 
         .modal-content p {
-            padding: 15px;
+            padding: 10px;
             text-align: left;
         }
         .modal-header, .modal-footer {
-            padding: 2px 16px;
-            background-color: #3fa5ff;
+            padding: 2px 10px;
+            background-color: #024d7e;
             color: white;
             text-align: left;
          
@@ -112,11 +112,16 @@
 </head>
 
 <body>
+  
  <div id="calendarHeader">
     <button id="prevMonth">&#171;</button>
     <span> </span><span id="monthYearDisplay"></span>
     <button id="nextMonth">&#187;</button>
-    <button id="toggleView">Expand View</button>
+   <button id="toggleView">Expand View</button>
+   
+   
+    
+   
 </div>
 
     </div>
@@ -127,7 +132,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <span class="close">×</span>
-                <h2>Event Details</h2>
+                <h3>Event Details</h3>
             </div>
             <div class="modal-body">
                 <p id="eventDetails"></p>
@@ -139,7 +144,7 @@
     </div>
 
     <script>
-       let currentYear = new Date().getFullYear();
+    let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 
 function displayMonthYear() {
@@ -188,6 +193,7 @@ function updateCalendar(year, month) {
 
     const today = new Date();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
     fetchEventsForMonth(year, month).then(events => {
         for (let day = 1; day <= daysInMonth; day++) {
             const cell = document.createElement('div');
@@ -196,7 +202,13 @@ function updateCalendar(year, month) {
                 cell.classList.add('current-day');
             }
 
-            const eventsOnThisDay = events.filter(event => new Date(event.attributes.Start_Date).getDate() === day);
+            // Check if the day is within any event date range
+            const eventsOnThisDay = events.filter(event => {
+                const startDate = new Date(event.attributes.Start_Date).getDate();
+                const endDate = new Date(event.attributes.End_Date).getDate();
+                return day >= startDate && day <= endDate;
+            });
+
             if (eventsOnThisDay.length) {
                 cell.classList.add('highlighted');
                 cell.addEventListener('click', function () {
@@ -271,7 +283,6 @@ document.getElementById('toggleView').addEventListener('click', function() {
         this.innerText = 'Compact View';
     }
 });
-
 
 displayMonthYear();
 updateCalendar(currentYear, currentMonth);
