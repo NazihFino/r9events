@@ -60,15 +60,15 @@
             border: 1px solid #888;
             width: 80%;
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-                font-size: 0.9em; /* Adjust this value to reduce the overall font size in the modal */
         }
 
         .modal-content p {
             padding: 10px;
             text-align: left;
+              font-size: 0.9em; /* Adjust this value to reduce the overall font size in the modal */
         }
         .modal-header, .modal-footer {
-            padding: 2px 8px;
+            padding: 2px 10px;
             background-color: #024d7e;
             color: white;
             text-align: left;
@@ -109,13 +109,16 @@
 </head>
 
 <body>
-  
+
 <div id="calendarHeader">
     <button id="prevMonth">&#171;</button>
     <div> <!-- This div will group the month and year display together -->
         <span> </span><span id="monthYearDisplay"></span>
     </div>
     <button id="nextMonth">&#187;</button>
+  <button onclick="openWin()"> Expand </button>
+  
+  
 </div>
 
 
@@ -138,6 +141,16 @@
     </div>
 
     <script>
+ let myWindow;
+
+function openWin() {
+  myWindow = window.open(window.location.href, "_blank", "width=500, height=500");
+}
+
+
+function resizeWin() {
+  myWindow.resizeTo(300, 300);
+}   
     let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth();
 
