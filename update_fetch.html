@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Calendar</title>
     <style>
-      
-      
-#calendarHeader {
-    max-width: 400px;
-    margin: 0.5em auto;
-    display: flex;
-    justify-content: space-between; /* This will push the buttons to the edges and center the month-year display */
-    align-items: center;
-    padding: 0.5em;
-    background: #e7e7e7;
-}
+        /* Responsive design adjustments */
+        @media (max-width: 480px) {
+            #calendarHeader {
+                flex-direction: column;
+            }
+        }
 
+        #calendarHeader {
+            max-width: 400px;
+            margin: 0.5em auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5em;
+            background: #e7e7e7;
+        }
 
         #calendar {
             display: grid;
@@ -36,7 +39,7 @@
         }
 
         .highlighted {
-            background-color: lightblue;;
+            background-color: lightblue;
         }
 
         .modal {
@@ -65,14 +68,15 @@
         .modal-content p {
             padding: 10px;
             text-align: left;
-              font-size: 0.9em; /* Adjust this value to reduce the overall font size in the modal */
+            font-size: 0.9em;
         }
-        .modal-header, .modal-footer {
+
+        .modal-header,
+        .modal-footer {
             padding: 2px 10px;
             background-color: #024d7e;
             color: white;
             text-align: left;
-         
         }
 
         .close {
@@ -82,7 +86,8 @@
             font-weight: bold;
         }
 
-        .close:hover, .close:focus {
+        .close:hover,
+        .close:focus {
             color: #000;
             text-decoration: none;
             cursor: pointer;
@@ -91,38 +96,31 @@
         .current-day {
             outline: 2px solid blue;
         }
-      
-      .day-initial {
-    font-size: 0.9 em;  /* Adjust this value to your preference */
-}
 
+        .day-initial {
+            font-size: 0.9em;
+        }
 
-        /* Set Avenir Next font for all content */
         body {
             font-family: 'Avenir Next', sans-serif;
         }
-      #calendar {
-            grid-template-rows: auto repeat(5, 1fr); /* Assuming a maximum of 5 rows for the days of the month */
-}
-    
+
+        #calendar {
+            grid-template-rows: auto repeat(5, 1fr);
+        }
     </style>
 </head>
 
 <body>
-
-<div id="calendarHeader">
-    <button id="prevMonth">&#171;</button>
-    <div> <!-- This div will group the month and year display together -->
-        <span> </span><span id="monthYearDisplay"></span>
+    <div id="calendarHeader">
+        <button id="prevMonth">&#171;</button>
+        <div>
+            <span> </span><span id="monthYearDisplay"></span>
+        </div>
+        <button id="nextMonth">&#187;</button>
+        <button onclick="openWin()"> Expand </button>
     </div>
-    <button id="nextMonth">&#187;</button>
-  <button onclick="openWin()"> Expand </button>
-  
-  
-</div>
 
-
- 
     <div id="calendar"></div>
 
     <div id="eventModal" class="modal">
@@ -141,24 +139,21 @@
     </div>
 
     <script>
- let myWindow;
+        let myWindow;
 
-function openWin() {
-  myWindow = window.open(window.location.href, "_blank", "width=500, height=500");
-}
+        function openWin() {
+            myWindow = window.open(window.location.href, "_blank", "width=500, height=500");
+        }
 
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
 
-function resizeWin() {
-  myWindow.resizeTo(600, 600);
-}   
-    let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
+        function displayMonthYear() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthYearDisplay = document.getElementById('monthYearDisplay');
+            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        }
 
-function displayMonthYear() {
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthYearDisplay = document.getElementById('monthYearDisplay');
-    monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-}
 
 async function fetchEventsForMonth(year, month) {
     try {
