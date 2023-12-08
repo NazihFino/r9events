@@ -1,1 +1,288 @@
-r
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Calendar with Time Zone Support</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.27/"></script>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.4.2/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.2/calcite.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data-10-year-range.min.js"></script>
+    <title>Dynamic Calendar</title>
+    <style>
+         <!-- Include the ESRI stylesheet -->
+<link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.27/"></script>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.4.2/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.2/calcite.css" />
+        /* Responsive design adjustments */
+        @media (max-width: 480px) {
+            #calendarHeader {
+                flex-direction: auto;
+            }
+        }
+
+        #calendarHeader {
+            max-width: 480px;
+            margin: 0.5em auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5em;
+            background: #e7e7e7;
+        }
+
+        #calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5em;
+            max-width: 400px;
+            margin: auto;
+            padding: 3em;
+            background: #f7f7f7;
+        }
+
+        #calendar > div {
+            padding: 0.5em;
+            text-align: center;
+        }
+
+        .highlighted {
+            background-color: lightblue;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: auto;
+            padding: 0;
+            border: 1px solid #888;
+            width: 80%;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+        }
+
+        .modal-content p {
+            padding: 10px;
+            text-align: left;
+            font-size: 0.9em;
+        }
+
+        .modal-header,
+        .modal-footer {
+            padding: 2px 10px;
+            background-color: #024d7e;
+            color: white;
+            text-align: left;
+        }
+
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .current-day {
+            outline: 2px solid blue;
+        }
+
+        .day-initial {
+            font-size: 0.9em;
+        }
+
+        body {
+            font-family: 'Avenir Next', sans-serif;
+        }
+
+        #calendar {
+            grid-template-rows: auto repeat(5, 1fr);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="calendarHeader">
+        <button id="prevMonth">&#171;</button>
+        <div>
+            <span> </span><span id="monthYearDisplay"></span>
+        </div>
+        <button id="nextMonth">&#187;</button>
+        <button onclick="openWin()"> Expand </button>
+    </div>
+
+    <div id="calendar"></div>
+
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">×</span>
+                <h3>Event Details</h3>
+            </div>
+            <div class="modal-body">
+                <p id="eventDetails"></p>
+            </div>
+            <div class="modal-footer">
+                <h3>End of Details</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         // Initialize global year and month based on the user's time zone
+        const tz = moment.tz.guess();
+        let currentMoment = moment.tz(tz);
+        let currentYear = currentMoment.year();
+        let currentMonth = currentMoment.month();
+
+        function displayMonthYear() {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const monthYearDisplay = document.getElementById('monthYearDisplay');
+            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        }
+
+
+async function fetchEventsForMonth(year, month) {
+    try {
+        const response = await fetch("https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/FAB_nf/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json");
+        const data = await response.json();
+        return data.features.filter(event => {
+            const eventDate = new Date(event.attributes.Start_Date);
+            return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+        });
+    } catch (error) {
+        console.error("Failed to fetch events:", error);
+        return [];
+    }
+}
+
+function addDayInitials() {
+    const calendar = document.getElementById('calendar');
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    days.forEach(day => {
+        const dayInitial = document.createElement('div');
+        dayInitial.innerText = day;
+        dayInitial.classList.add('day-initial'); // Add a class to the day initials
+        calendar.appendChild(dayInitial);
+    });
+}
+
+
+function updateCalendar(year, month) {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = "";
+            addDayInitials();
+
+            const firstDayOfMonth = moment.tz([year, month], tz).startOf('month').day();
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                calendar.appendChild(emptyCell);
+            }
+
+            const today = moment.tz(tz);
+            const daysInMonth = moment.tz([year, month], tz).daysInMonth();
+            
+            fetchEventsForMonth(year, month).then(events => {
+            }
+
+            // Check if the day is within any event date range
+            const eventsOnThisDay = events.filter(event => {
+                const startDate = new Date(event.attributes.Start_Date).getDate();
+                const endDate = new Date(event.attributes.End_Date).getDate();
+                return day >= startDate && day <= endDate;
+            });
+
+            if (eventsOnThisDay.length) {
+                cell.classList.add('highlighted');
+                cell.addEventListener('click', function () {
+                    const eventModal = document.getElementById('eventModal');
+                    const eventDetails = document.getElementById('eventDetails');
+
+                    let detailsHtml = '';
+                    eventsOnThisDay.forEach(event => {
+                        detailsHtml += `
+                            <strong>Name:</strong> ${event.attributes.Event_Name} <br><br>
+                            <strong>Start Date:</strong> ${new Date(event.attributes.Start_Date).toLocaleDateString()} <br>
+                            <strong>End Date:</strong> ${new Date(event.attributes.End_Date).toLocaleDateString()} <br>
+                            <strong>Type:</strong> ${event.attributes.Event_Type} <br>
+                            <strong>Location:</strong> ${event.attributes.Event_Location__State_Territory} <br>
+                            <strong>Organization:</strong> ${event.attributes.FEMA_R9_Division} <br>
+                            <strong>Sub-Organization:</strong> ${event.attributes.FEMA_R9_Branch} <br>
+                            <strong>Occurrence:</strong> ${event.attributes.Event_Occurrence} <br>
+                            <strong>Stakeholders:</strong> ${event.attributes.FEMA_R9_Stakeholders} <br> <br>
+                            <strong>Description:</strong> ${event.attributes.Notes} <br>
+                            <hr> 
+                        `;
+                    });
+
+                    eventDetails.innerHTML = detailsHtml;
+                    eventModal.style.display = "block";
+                });
+            }
+            calendar.appendChild(cell);
+        }
+    });
+}
+
+document.getElementById('prevMonth').addEventListener('click', function () {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    displayMonthYear();
+    updateCalendar(currentYear, currentMonth);
+});
+
+document.getElementById('nextMonth').addEventListener('click', function () {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    displayMonthYear();
+    updateCalendar(currentYear, currentMonth);
+});
+
+const modal = document.getElementById('eventModal');
+const closeBtn = document.querySelector(".close");
+closeBtn.onclick = function () {
+    modal.style.display = "none";
+}
+window.onclick = function (event) {
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+
+displayMonthYear();
+updateCalendar(currentYear, currentMonth);
+
+    </script>
+</body>
+
+</html>
