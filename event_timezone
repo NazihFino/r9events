@@ -3,7 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Calendar with Time Zone Support</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.27/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.27/"></script>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.4.2/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.4.2/calcite.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data-10-year-range.min.js"></script>
     <title>Dynamic Calendar</title>
     <style>
          <!-- Include the ESRI stylesheet -->
@@ -144,22 +152,11 @@
     </div>
 
     <script>
-        let myWindow;
-
-        function openWin() {
-            myWindow = window.open(window.location.href, "_blank", "width=500, height=500");
-        }
-
-        let currentYear = new Date().getFullYear();
-        let currentMonth = new Date().getMonth();
-
-        function displayMonthYear() {
-            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-            const monthYearDisplay = document.getElementById('monthYearDisplay');
-            monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-        }
-
-
+         // Initialize global year and month based on the user's time zone
+        const tz = moment.tz.guess();
+        let currentMoment = moment.tz(tz);
+        let currentYear = currentMoment.year();
+        let currentMonth = currentMoment.month();
 
         function displayMonthYear() {
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -196,26 +193,20 @@ function addDayInitials() {
 
 
 function updateCalendar(year, month) {
-    const calendar = document.getElementById('calendar');
-    calendar.innerHTML = ""; 
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = "";
+            addDayInitials();
 
-    addDayInitials();
+            const firstDayOfMonth = moment.tz([year, month], tz).startOf('month').day();
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                calendar.appendChild(emptyCell);
+            }
 
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
-    for (let i = 0; i < firstDayOfMonth; i++) {
-        const emptyCell = document.createElement('div');
-        calendar.appendChild(emptyCell);
-    }
-
-    const today = new Date();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    fetchEventsForMonth(year, month).then(events => {
-        for (let day = 1; day <= daysInMonth; day++) {
-            const cell = document.createElement('div');
-            cell.innerText = day;
-            if (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === day) {
-                cell.classList.add('current-day');
+            const today = moment.tz(tz);
+            const daysInMonth = moment.tz([year, month], tz).daysInMonth();
+            
+            fetchEventsForMonth(year, month).then(events => {
             }
 
             // Check if the day is within any event date range
