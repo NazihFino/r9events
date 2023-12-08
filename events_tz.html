@@ -140,7 +140,7 @@
     </div>
 
     <script>
-        const tz = moment.tz.guess();
+ const tz = moment.tz.guess();
         let currentYear = moment.tz(tz).year();
         let currentMonth = moment.tz(tz).month();
 
@@ -149,10 +149,18 @@
             document.getElementById('monthYearDisplay').textContent = `${monthNames[currentMonth]} ${currentYear}`;
         }
 
-        async function fetchEventsForMonth(year, month) {
-            // Implement fetch logic here
-            // This is a placeholder, adjust as per your actual API and data structure
-            return [];
+async function fetchEventsForMonth(year, month) {
+            try {
+                const response = await fetch("https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/FAB_nf/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json");
+                const data = await response.json();
+                return data.features.filter(event => {
+                    const eventDate = new Date(event.attributes.Start_Date);
+                    return eventDate.getFullYear() === year && eventDate.getMonth() === month;
+                });
+            } catch (error) {
+                console.error("Failed to fetch events:", error);
+                return [];
+            }
         }
 
         function addDayInitials() {
@@ -189,6 +197,68 @@
                 }
 
                 // Add event listener for each day cell
+ async function updateCalendar(year, month) {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = "";
+            addDayInitials();
+
+            const firstDayOfMonth = moment.tz([year, month], tz).startOf('month').day();
+            const daysInMonth = moment.tz([year, month], tz).daysInMonth();
+
+            const events = await fetchEventsForMonth(year, month);
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                calendar.appendChild(document.createElement('div'));
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const cell = document.createElement('div');
+                cell.innerText = day;
+
+                // Highlight today's date
+                if (year === currentYear && month === currentMonth && day === moment().date()) {
+                    cell.classList.add('current-day');
+                }
+
+                const eventsOnThisDay = events.filter(event => {
+                    const startDate = new Date(event.attributes.Start_Date).getDate();
+                    const endDate = new Date(event.attributes.End_Date).getDate();
+                    return day >= startDate && day <= endDate;
+                });
+
+                if (eventsOnThisDay.length) {
+                    cell.classList.add('highlighted');
+                    cell.addEventListener('click', () => displayEventsForDay(eventsOnThisDay));
+                }
+
+                calendar.appendChild(cell);
+            }
+        }
+
+        // Display events for a selected day
+        function displayEventsForDay(eventsOnThisDay) {
+            const eventModal = document.getElementById('eventModal');
+            const eventDetails = document.getElementById('eventDetails');
+
+            let detailsHtml = '';
+            eventsOnThisDay.forEach(event => {
+                detailsHtml += `
+                    <strong>Name:</strong> ${event.attributes.Event_Name} <br>
+                    <strong>Start Date:</strong> ${new Date(event.attributes.Start_Date).toLocaleDateString()} <br>
+                    <strong>End Date:</strong> ${new Date(event.attributes.End_Date).toLocaleDateString()} <br>
+                    <strong>Type:</strong> ${event.attributes.Event_Type} <br>
+                    <strong>Location:</strong> ${event.attributes.Event_Location__State_Territory} <br>
+                    <strong>Organization:</strong> ${event.attributes.FEMA_R9_Division} <br>
+                    <strong>Sub-Organization:</strong> ${event.attributes.FEMA_R9_Branch} <br>
+                    <strong>Occurrence:</strong> ${event.attributes.Event_Occurrence} <br>
+                    <strong>Stakeholders:</strong> ${event.attributes.FEMA_R9_Stakeholders} <br>
+                    <strong>Description:</strong> ${event.attributes.Notes} <br>
+                    <hr>
+                `;
+            });
+            eventDetails.innerHTML = detailsHtml;
+            eventModal.style.display = "block";
+        }
                 cell.addEventListener('click', function() {
                     displayEventsForDay(year, month, day);
                 });
