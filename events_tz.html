@@ -149,10 +149,12 @@
 <body>
  <script>
          // Initialize global year and month based on the user's time zone
-        const tz = moment.tz.guess();
+  const tz = moment.tz.guess();
         let currentMoment = moment.tz(tz);
         let currentYear = currentMoment.year();
         let currentMonth = currentMoment.month();
+
+        function displayMonthYear() {
 
         function displayMonthYear() {
             const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -161,7 +163,7 @@
         }
 
 
-async function fetchEventsForMonth(year, month) {
+ async function fetchEventsForMonth(year, month) {
     try {
         const response = await fetch("https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/FAB_nf/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json");
         const data = await response.json();
@@ -175,7 +177,7 @@ async function fetchEventsForMonth(year, month) {
     }
 }
 
-function addDayInitials() {
+  function addDayInitials() {
     const calendar = document.getElementById('calendar');
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -188,7 +190,7 @@ function addDayInitials() {
 }
 
 
- function updateCalendar(year, month) {
+function updateCalendar(year, month) {
             const calendar = document.getElementById('calendar');
             calendar.innerHTML = "";
             addDayInitials();
@@ -276,9 +278,7 @@ window.onclick = function (event) {
 }
 
 displayMonthYear();
-updateCalendar(currentYear, currentMonth);
-
+        updateCalendar(currentYear, currentMonth);
     </script>
 </body>
-
 </html>
