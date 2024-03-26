@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Clocks</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #333;
+    color: white;
+    text-align: center;
+  }
+  .clocks {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .clock {
+    margin: 10px;
+    padding: 20px;
+    background: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .time {
+    font-size: 2em;
+    margin-bottom: 5px;
+  }
+  .zone {
+    font-size: 1em;
+  }
+</style>
+</head>
+<body>
+<div class="clocks" id="clocks">
+  <!-- Clocks will be inserted here by JavaScript -->
+</div>
+<script>
+function updateTimes() {
+  const timeZones = [
+    { name: 'Pacific', offset: -7 },
+    { name: 'Hawaii', offset: -10 },
+    { name: 'Guam', offset: 10 },
+    { name: 'Arizona', offset: -7 },
+    { name: 'Eastern', offset: -4 },
+    { name: 'Zulu', offset: 0 },
+    { name: 'Samoa', offset: 13 }
+  ];
+  
+  // Clear existing clocks
+  document.getElementById('clocks').innerHTML = '';
+  
+  // Create and append clocks for each time zone
+  timeZones.forEach(zone => {
+    let now = new Date();
+    let localTime = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+                              now.getUTCHours() + zone.offset, now.getUTCMinutes(), now.getUTCSeconds());
+    let timeString = localTime.toISOString().substring(11, 16);
+    
+    let clockDiv = document.createElement('div');
+    clockDiv.className = 'clock';
+    
+    let timeDiv = document.createElement('div');
+    timeDiv.className = 'time';
+    timeDiv.textContent = timeString;
+    
+    let zoneDiv = document.createElement('div');
+    zoneDiv.className = 'zone';
+    zoneDiv.textContent = zone.name;
+    
+    clockDiv.appendChild(timeDiv);
+    clockDiv.appendChild(zoneDiv);
+    
+    document.getElementById('clocks').appendChild(clockDiv);
+  });
+}
+
+// Update the times every minute
+setInterval(updateTimes, 60000);
+
+// Call it once to show times immediately on page load
+updateTimes();
+</script>
+</body>
+</html>
