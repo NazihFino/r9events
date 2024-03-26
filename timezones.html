@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>World Clocks</title>
+<title>Local Timezone Clocks</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -39,6 +39,8 @@
 </div>
 <script>
 function updateTimes() {
+  // Define your time zones and their respective offsets from UTC
+  // Please note: These offsets may need to be adjusted for daylight saving time as needed
   const timeZones = [
     { name: 'Pacific', offset: -7 },
     { name: 'Hawaii', offset: -10 },
@@ -49,15 +51,22 @@ function updateTimes() {
     { name: 'Samoa', offset: 13 }
   ];
   
+  // Get the current local time
+  let localNow = new Date();
+  
+  // Calculate the local time's offset from UTC in hours
+  let localOffset = -localNow.getTimezoneOffset() / 60;
+
   // Clear existing clocks
   document.getElementById('clocks').innerHTML = '';
   
   // Create and append clocks for each time zone
   timeZones.forEach(zone => {
-    let now = new Date();
-    let localTime = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
-                              now.getUTCHours() + zone.offset, now.getUTCMinutes(), now.getUTCSeconds());
-    let timeString = localTime.toISOString().substring(11, 16);
+    let zoneTime = new Date(localNow.getTime() + (zone.offset - localOffset) * 3600000);
+    
+    let hours = zoneTime.getHours().toString().padStart(2, '0');
+    let minutes = zoneTime.getMinutes().toString().padStart(2, '0');
+    let timeString = `${hours}:${minutes}`;
     
     let clockDiv = document.createElement('div');
     clockDiv.className = 'clock';
@@ -82,6 +91,7 @@ setInterval(updateTimes, 60000);
 
 // Call it once to show times immediately on page load
 updateTimes();
+
 </script>
 </body>
 </html>
