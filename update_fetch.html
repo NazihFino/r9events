@@ -138,6 +138,29 @@ background-size:100px 100px;
         #calendar {
             grid-template-rows: auto repeat(5, 1fr);
         }
+      .Event_Strategic {
+    background-color: yellow; /* Yellow background for strategic days */
+        .holiday-strategic-overlay {
+    background-color: yellow; /* Base color for strategic days */
+    position: relative;
+    opacity: 0.8;
+}
+
+.holiday-strategic-overlay::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: radial-gradient(circle, orange 10%, transparent 10%) 0 0,
+                radial-gradient(circle, orange 10%, transparent 30%) 50px 50px,
+                yellow; /* Use orange to distinguish the overlay on strategic holidays */
+    background-size: 100px 100px;
+    opacity: 0.6;
+
+}
+
     </style>
 </head>
 
@@ -253,6 +276,10 @@ fetchEventsForMonth(year, month).then(events => {
 if (eventsOnThisDay.length) {
     const isHoliday = eventsOnThisDay.some(event => event.attributes.Event_Type === "Holiday");
     const isOtherEvent = eventsOnThisDay.some(event => event.attributes.Event_Type !== "Holiday");
+    const hasStrategicEvent = eventsOnThisDay.some(event => event.attributes.Event_Strategic === "Yes");
+        if (hasStrategicEvent) {
+            cell.classList.add('Event_Strategic');
+        }
 
     if (isHoliday && !isOtherEvent) {
         cell.classList.add('holiday');
@@ -261,7 +288,9 @@ if (eventsOnThisDay.length) {
     } else {
         cell.classList.add('highlighted');
     }
-
+      if (isHoliday && hasStrategicEvent) {
+        cell.classList.add('holiday-strategic-overlay');
+      }
 
             cell.addEventListener('click', function () {
                     const eventModal = document.getElementById('eventModal');
