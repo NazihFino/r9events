@@ -25,7 +25,7 @@
     align-items: center;
   }
   .time {
-    font-size: 2em;
+    font-size: 1em;
     margin-bottom: 5px;
   }
   .zone {
@@ -40,7 +40,6 @@
 <script>
 function updateTimes() {
   // Define your time zones and their respective offsets from UTC
-  // Please note: These offsets may need to be adjusted for daylight saving time as needed
   const timeZones = [
     { name: 'Pacific', offset: -7 },
     { name: 'Hawaii', offset: -10 },
@@ -64,9 +63,10 @@ function updateTimes() {
   timeZones.forEach(zone => {
     let zoneTime = new Date(localNow.getTime() + (zone.offset - localOffset) * 3600000);
     
+    let dateString = zoneTime.toDateString();
     let hours = zoneTime.getHours().toString().padStart(2, '0');
     let minutes = zoneTime.getMinutes().toString().padStart(2, '0');
-    let timeString = `${hours}:${minutes}`;
+    let timeString = `${dateString}, ${hours}:${minutes}`;
     
     let clockDiv = document.createElement('div');
     clockDiv.className = 'clock';
@@ -91,6 +91,7 @@ setInterval(updateTimes, 60000);
 
 // Call it once to show times immediately on page load
 updateTimes();
+
 
 </script>
 </body>
