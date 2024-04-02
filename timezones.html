@@ -8,7 +8,7 @@
   body {
     font-family: Arial, sans-serif;
     background-color: white;
-    color: white;
+    color: black;
     text-align: center;
   }
   .clocks {
@@ -23,13 +23,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    color: white; /* For text to be visible on the blue background */
   }
   .time {
-    font-size: 0.8em;
-    margin-bottom: 5px;
+    font-size: 1.5em; /* Adjusted for better visibility */
+  }
+  .date {
+    font-size: 1.0em; /* New date class for styling the date row */
   }
   .zone {
-    font-size: 1.1em;
+    font-size: .8em;
   }
 </style>
 </head>
@@ -37,17 +40,19 @@
 <div class="clocks" id="clocks">
   <!-- Clocks will be inserted here by JavaScript -->
 </div>
+
 <script>
 function updateTimes() {
   // Define your time zones and their respective offsets from UTC
   const timeZones = [
-    { name: 'Pacific', offset: -7 },
+    { name: 'American Samoa', offset: -11 },
     { name: 'Hawaii', offset: -10 },
-    { name: 'Guam', offset: 10 },
+    { name: 'Pacific', offset: -7 },
     { name: 'Arizona', offset: -7 },
+    { name: 'Mountain', offset: -6 },
+    { name: 'Central', offset: -5 },
     { name: 'Eastern', offset: -4 },
-    { name: 'Zulu', offset: 0 },
-    { name: 'Samoa', offset: 13 }
+    { name: 'Guam/CNMI', offset: 10 }
   ];
   
   // Get the current local time
@@ -62,24 +67,36 @@ function updateTimes() {
   // Create and append clocks for each time zone
   timeZones.forEach(zone => {
     let zoneTime = new Date(localNow.getTime() + (zone.offset - localOffset) * 3600000);
-    
-    let dateString = zoneTime.toDateString();
+
+    // Format the date string as "Day Mon DD YYYY"
+    let dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let dayName = dayNames[zoneTime.getDay()];
+    let monthName = monthNames[zoneTime.getMonth()];
+    let dateString = `${dayName} ${monthName} ${zoneTime.getDate().toString().padStart(2, '0')} ${zoneTime.getFullYear()}`;
+
     let hours = zoneTime.getHours().toString().padStart(2, '0');
     let minutes = zoneTime.getMinutes().toString().padStart(2, '0');
-    let timeString = `${dateString}, ${hours}:${minutes}`;
-    
+    let timeString = `${hours}:${minutes}`;
+
     let clockDiv = document.createElement('div');
     clockDiv.className = 'clock';
-    
+
     let timeDiv = document.createElement('div');
     timeDiv.className = 'time';
     timeDiv.textContent = timeString;
     
+    let dateDiv = document.createElement('div');
+    dateDiv.className = 'date';
+    dateDiv.textContent = dateString;
+
     let zoneDiv = document.createElement('div');
     zoneDiv.className = 'zone';
     zoneDiv.textContent = zone.name;
     
+    // Append the timeDiv first for the time to appear on the first row
     clockDiv.appendChild(timeDiv);
+    clockDiv.appendChild(dateDiv);
     clockDiv.appendChild(zoneDiv);
     
     document.getElementById('clocks').appendChild(clockDiv);
@@ -91,8 +108,7 @@ setInterval(updateTimes, 60000);
 
 // Call it once to show times immediately on page load
 updateTimes();
-
-
 </script>
+
 </body>
 </html>
