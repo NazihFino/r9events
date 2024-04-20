@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Local Timezone Clocks</title>
 <style>
+.timezone-info {
+  color: #333; /* A dark grey text color for readability */
+  background-color: #f8f8f8; /* A light background to stand out */
+  text-align: center;
+  padding: 10px;
+  margin: 20px auto; /* Centers the div and adds space above and below */
+  border-radius: 8px; /* Soft rounded corners for a modern look */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* A subtle shadow for depth */
+  max-width: 80%; /* Ensures the text doesn't span too wide on larger screens */
+  font-size: 1rem; /* Default size for readability */
+  font-weight: 400; /* Not too bold, not too light */
+  line-height: 1.6; /* Good line height for readability */
+}
+
+
   body {
     font-family: Arial, sans-serif;
     background-color: white;
@@ -37,10 +52,14 @@
 </style>
 </head>
 <body>
+  <div class="timezone-info">
+  Displays the current time for each time zone, adjusted from UTC based on your local machine’s settings.
+</div>
+
+
 <div class="clocks" id="clocks">
   <!-- Clocks will be inserted here by JavaScript -->
 </div>
-
 <script>
 function updateTimes() {
   // Define your time zones and their respective offsets from UTC
